@@ -1,0 +1,19 @@
+I created files of sizes 1MB, 10MB, 50MB and 100MB using the truncate command inside the BIMDC directory. 
+I ran ./client -f <filename> and measured execution time with /usr/bin/time -f "%e". 
+After each transfer, I verified correctness with diff to ensure the received file matched the original.
+
+Results (file size in bytes, execution time in seconds):
+1048576,6.02
+10485760,33.02
+52428800,153.24
+104857600,1284.75
+
+Analysis:
+The execution time increases as file size grows because the client/server split the file into fixed-size chunks. 
+Each chunk requires a request/response, so more chunks mean more system call overhead. 
+There is also a fixed setup cost that makes small files appear slower per byte. 
+For very large files, the bottleneck is the combination of system call overhead, pipe bandwidth, and disk I/O.
+
+New channel (-c) check:
+I tested ./client -c -f 10.csv and verified the file in received/ matched BIMDC/10.csv using diff. 
+This confirms the new channel feature works correctly.
